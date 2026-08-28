@@ -1,0 +1,14 @@
+{
+  "name": "gridhub-mcp",
+  "version": "1.0.1",
+  "description": "Local stdio bridge to the hosted GridHub electricity market data MCP server (https://api.grid-hub.app/mcp)",
+  "type": "module",
+  "bin": { "gridhub-mcp": "bin/gridhub-mcp.mjs" },
+  "files": ["bin", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "dependencies": { "mcp-remote": "^0.8.1" },
+  "keywords": ["mcp", "mcp-server", "model-context-protocol", "electricity", "energy", "carbon-intensity", "x402"],
+  "repository": { "type": "git", "url": "https://github.com/jalcodev/gridhub-mcp" },
+  "homepage": "https://grid-hub.app/developers#mcp",
+  "license": "MIT"
+}

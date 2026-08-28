@@ -47,6 +47,20 @@ claude mcp add --transport http gridhub https://api.grid-hub.app/mcp \
 
 **Claude Desktop / claude.ai** — add `https://api.grid-hub.app/mcp` as a custom connector. These clients don't send custom headers; pass the key as the optional `api_key` tool argument, or use sample mode.
 
+**Local stdio bridge** — for clients that only support local (stdio) servers. It proxies to the hosted endpoint via `mcp-remote`; nothing runs locally except the bridge.
+```json
+{
+  "mcpServers": {
+    "gridhub": {
+      "command": "npx",
+      "args": ["-y", "github:jalcodev/gridhub-mcp"],
+      "env": { "GRIDHUB_API_KEY": "YOUR_KEY" }
+    }
+  }
+}
+```
+Or with Docker: `docker build -t gridhub-mcp . && docker run -i -e GRIDHUB_API_KEY=YOUR_KEY gridhub-mcp`. Omit the key for sample mode.
+
 **Any client, no key** — omit the header. You'll get sample-mode data and a note on how to upgrade.
 
 ## Protocol
