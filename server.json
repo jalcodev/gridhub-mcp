@@ -3,7 +3,7 @@
   "name": "io.github.jalcodev/gridhub",
   "title": "GridHub Electricity Market Data",
   "description": "Live and historical electricity prices, demand, generation mix and carbon intensity for 25 grids.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "websiteUrl": "https://grid-hub.app/developers#mcp",
   "remotes": [
     {
@@ -18,5 +18,9 @@
         }
       ]
     }
-  ]
+  ],
+  "repository": {
+    "url": "https://github.com/jalcodev/gridhub-mcp",
+    "source": "github"
+  }
 }
