@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.jalcodev/gridhub",
+  "title": "GridHub Electricity Market Data",
+  "description": "Live and historical electricity prices, demand, generation mix and carbon intensity for 25 grids.",
+  "version": "1.0.0",
+  "websiteUrl": "https://grid-hub.app/developers#mcp",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.grid-hub.app/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Optional. 'Bearer <ghk_key>' for full data (free key: https://grid-hub.app/developers). Without it, tools run in free sample mode.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
