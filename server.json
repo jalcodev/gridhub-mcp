@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.jalcodev/gridhub",
   "title": "GridHub Electricity Market Data",
-  "description": "Live and historical electricity prices, demand, generation mix and carbon intensity for 25 grids.",
-  "version": "1.0.1",
+  "description": "Live and historical electricity prices and demand for 25 grids; carbon intensity for GB.",
+  "version": "1.0.2",
   "websiteUrl": "https://grid-hub.app/developers#mcp",
   "remotes": [
     {

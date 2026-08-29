@@ -103,8 +103,8 @@ const TOOLS: ToolDef[] = [
     name: "get_latest",
     title: "Latest values for a zone",
     description:
-      "The most recent value of every metric one zone publishes (price, demand, carbon intensity, generation by " +
-      "fuel, interchange), each with unit and timestamp. This is the right tool for 'what is the price/demand/" +
+      "The most recent value of every metric one zone publishes (price and demand for every zone; generation by " +
+      "fuel for GB and US-CAISO; carbon intensity for GB; interchange where available), each with unit and timestamp. This is the right tool for 'what is the price/demand/" +
       "carbon intensity in X right now'. Note: some European sources publish day-ahead prices, so the price " +
       "timestamp can be up to ~36h in the future; use get_zone_brief for a strictly at-or-before-now value " +
       "with historical context. " + AUTH_NOTE,
@@ -121,9 +121,9 @@ const TOOLS: ToolDef[] = [
     name: "get_zone_brief",
     title: "Zone brief (current state in context)",
     description:
-      "Composite, interpretation-ready snapshot of one zone: current price / demand / carbon intensity (strictly " +
+      "Composite, interpretation-ready snapshot of one zone: current price / demand / carbon intensity where published (strictly " +
       "at-or-before now), each ranked against that zone's own last ~30 days (percentile, vs-median %, min/max, " +
-      "sample count and the actual data window), a 24h trend per metric, the full generation mix, and a one-" +
+      "sample count and the actual data window), a 24h trend per metric, the generation mix where published (GB, US-CAISO), and a one-" +
       "sentence plain-English summary. Best tool for questions like 'is electricity cheap/clean in X right now' " +
       "or 'is this a good time to run a flexible workload'. A raw price means little without this context. " +
       AUTH_NOTE,
@@ -145,8 +145,8 @@ const TOOLS: ToolDef[] = [
       "not recent data — for 'the latest N points' set start close to now, or use get_latest / get_zone_brief for " +
       "current values. Default window is the last 24h (last ~400 days for capacity, which is annual). Max window " +
       "31 days per call (400 for capacity); paginate with start/end for more. Metrics: price (wholesale, local " +
-      "currency per MWh), demand (MW), generation (per fuel, 'fuel' field set; % or MW depending on zone), " +
-      "carbon-intensity (gCO2/kWh), interchange (net imports, MW), capacity (installed MW per fuel; European " +
+      "currency per MWh), demand (MW), generation (per fuel, 'fuel' field set; % or MW depending on zone; GB and US-CAISO only), " +
+      "carbon-intensity (gCO2/kWh; GB only), interchange (net imports, MW), capacity (installed MW per fuel; European " +
       "zones only). " + AUTH_NOTE,
     inputSchema: {
       type: "object",
@@ -174,7 +174,7 @@ const TOOLS: ToolDef[] = [
     title: "All zones right now",
     description:
       "Current headline values for all 25 zones in one call — the cheapest way to compare zones (e.g. 'which " +
-      "European zone has the lowest carbon intensity right now', 'rank US ISOs by price'). Rebuilt every 5 " +
+      "European zone has the lowest price right now', 'rank US ISOs by demand'). Rebuilt every 5 " +
       "minutes. " + AUTH_NOTE,
     inputSchema: {
       type: "object",
@@ -415,9 +415,9 @@ export function mcpRoutes(app: Hono<{ Bindings: Env }>) {
   });
 
   const instructions =
-    "GridHub provides live and historical electricity market data — wholesale prices, demand, generation mix, " +
-    "carbon intensity, interconnector flows and installed capacity — for 25 grid zones across the US, Europe, " +
-    "Great Britain and Australia, in one normalised JSON schema. Every response carries its source attribution " +
+    "GridHub provides live and historical electricity market data — wholesale prices, demand, " +
+    "interconnector flows and installed capacity — for 25 grid zones across the US, Europe, " +
+    "Great Britain and Australia, in one normalised JSON schema. Generation mix is published for GB and US-CAISO only and carbon intensity for GB only; other zones omit those metrics. Every response carries its source attribution " +
     "and licence; repeat them when presenting data. Start with get_zone_brief for 'right now' questions and " +
     "get_history for time series. " + AUTH_NOTE;
 

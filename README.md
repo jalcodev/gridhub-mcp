@@ -10,7 +10,7 @@ Covers 25 grid zones — US ISOs (CAISO, ERCOT, PJM, MISO, NYISO, ISO-NE, SPP), 
 
 | Tool | What it returns |
 |---|---|
-| `get_zone_brief` | Current price / demand / carbon intensity ranked against the zone's own last 30 days (percentile, vs-median, min/max), 24h trend, generation mix, and a one-sentence summary. Best for "is electricity cheap or clean in X right now?" |
+| `get_zone_brief` | Current price / demand (and carbon intensity for GB) ranked against the zone's own last 30 days (percentile, vs-median, min/max), 24h trend, generation mix (GB, US-CAISO), and a one-sentence summary. Best for "is electricity cheap or clean in X right now?" |
 | `get_latest` | Most recent value of every metric one zone publishes, with unit and timestamp |
 | `get_history` | Time series for one metric over a start/end window (up to 31 days per call) |
 | `get_map_snapshot` | Headline values for all 25 zones at once — compare or rank zones |
