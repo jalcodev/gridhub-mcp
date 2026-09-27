@@ -1,3 +1,5 @@
+import { EXAMPLES } from "../lib/examples";
+import { schemaOf } from "../lib/schema-of";
 import { Hono } from "hono";
 import { Env } from "../lib/store";
 import { ZONES } from "../lib/zones";
@@ -187,7 +189,17 @@ const TOOLS: ToolDef[] = [
 ];
 
 // Public view of a tool (drop the internal `gated` flag).
-const publicTool = ({ gated: _g, ...t }: ToolDef) => t;
+// outputSchema derived from real responses (src/lib/examples.ts). structuredContent
+// is the API body, so the same example describes both.
+const TOOL_EXAMPLE: Record<string, string> = {
+  list_zones: "zones", get_status: "status", get_latest: "latest",
+  get_zone_brief: "brief", get_history: "history", get_map_snapshot: "snapshot",
+};
+const publicTool = ({ gated: _g, ...t }: ToolDef) => {
+  const ex = EXAMPLES[TOOL_EXAMPLE[t.name]];
+  const schema = ex === undefined ? undefined : schemaOf(ex);
+  return schema && schema.type === "object" ? { ...t, outputSchema: schema } : t;
+};
 
 // ---------------------------------------------------------------------------
 // JSON-RPC helpers
@@ -209,7 +221,7 @@ const E_METHOD_NOT_FOUND = -32601;
 const E_INVALID_PARAMS = -32602;
 const E_INTERNAL = -32603;
 const E_HEADER_MISMATCH = -32020; // 2026-07-28: mirrored header ≠ body
-const E_UNSUPPORTED_VERSION = -32021; // 2026-07-28: UnsupportedProtocolVersionError
+const E_UNSUPPORTED_VERSION = -32022; // 2026-07-28: UnsupportedProtocolVersionError (-32021 is MissingRequiredClientCapability)
 
 /** Decode the `=?base64?...?=` sentinel format used for non-ASCII header values. */
 function decodeHeaderValue(v: string | undefined): string | undefined {
@@ -472,6 +484,8 @@ export function mcpRoutes(app: Hono<{ Bindings: Env }>) {
       );
     }
     const modern = headerVersion === MODERN_VERSION;
+    // 2026-07-28 (SEP-2549): list results carry ttlMs + cacheScope. Our lists are static.
+    const cacheable = (r: Record<string, unknown>) => (modern ? { ...r, ttlMs: 3_600_000, cacheScope: "public" } : r);
 
     // ---- 2026-07-28 header/body validation ----
     // Only enforced when the client declares the modern version; older
@@ -518,6 +532,21 @@ export function mcpRoutes(app: Hono<{ Bindings: Env }>) {
 
       try {
         switch (m.method) {
+          case "server/discover": {
+            if (!isNotification)
+              responses.push(
+                rpcResult(id, {
+                  resultType: "complete",
+                  supportedVersions: SUPPORTED_VERSIONS,
+                  capabilities: { tools: {} },
+                  instructions,
+                  ttlMs: 3_600_000,
+                  cacheScope: "public",
+                  _meta: { "io.modelcontextprotocol/serverInfo": serverInfo(c) },
+                })
+              );
+            break;
+          }
           case "initialize": {
             // Legacy handshake. Modern clients don't need it but may send it.
             const requested = m.params?.protocolVersion;
@@ -569,13 +598,13 @@ export function mcpRoutes(app: Hono<{ Bindings: Env }>) {
           // Capabilities we don't advertise; answer cleanly rather than 404 so
           // clients that probe don't treat the server as broken.
           case "resources/list":
-            if (!isNotification) responses.push(rpcResult(id, { resources: [] }));
+            if (!isNotification) responses.push(rpcResult(id, cacheable({ resources: [] })));
             break;
           case "resources/templates/list":
-            if (!isNotification) responses.push(rpcResult(id, { resourceTemplates: [] }));
+            if (!isNotification) responses.push(rpcResult(id, cacheable({ resourceTemplates: [] })));
             break;
           case "prompts/list":
-            if (!isNotification) responses.push(rpcResult(id, { prompts: [] }));
+            if (!isNotification) responses.push(rpcResult(id, cacheable({ prompts: [] })));
             break;
           default:
             methodNotFound = true;
@@ -583,6 +612,16 @@ export function mcpRoutes(app: Hono<{ Bindings: Env }>) {
         }
       } catch (err) {
         responses.push(rpcError(id, E_INTERNAL, `Internal error: ${(err as Error).message}`));
+      }
+    }
+
+    // 2026-07-28: every result carries resultType; results SHOULD identify the server.
+    if (modern) {
+      for (const r of responses as any[]) {
+        if (r && typeof r === "object" && r.result && typeof r.result === "object") {
+          r.result.resultType ??= "complete";
+          r.result._meta = { ...(r.result._meta ?? {}), "io.modelcontextprotocol/serverInfo": serverInfo(c) };
+        }
       }
     }
 
